@@ -35,16 +35,12 @@ publishTo <<= version { (v: String) =>
     Some("releases"  at nexus + "service/local/staging/deploy/maven2")
 }
 
+pomIncludeRepository := { _ => false }
+
 publishArtifact in Test := false
 
 pomExtra := (
-  <name>MongoDB Jackson Mapper Play 2.0 Framework Module</name>
-  <description>Provides a lightweight plugin for managing MongoDB connections and caching JacksonDBCollections</description>
   <url>http://github.com/vznet/play-mongo-jackson-mapper</url>
-  <organization>
-     <name>VZ Netzwerke</name>
-     <url>http://vz.net</url>
-  </organization>
   <inceptionYear>2012</inceptionYear>
   <licenses>
     <license>
