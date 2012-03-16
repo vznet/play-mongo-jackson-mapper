@@ -22,3 +22,50 @@ libraryDependencies ++= Seq(
     "org.specs2" %% "specs2" % "1.8.2" % "test",
     "play" %% "play-test" % "2.0" % "test"
 )
+
+// Configuration required for deploying to sonatype
+
+publishMavenStyle := true
+
+publishTo <<= version { (v: String) =>
+  val nexus = "https://oss.sonatype.org/"
+  if (v.trim.endsWith("SNAPSHOT"))
+    Some("snapshots" at nexus + "content/repositories/snapshots")
+  else
+    Some("releases"  at nexus + "service/local/staging/deploy/maven2")
+}
+
+publishArtifact in Test := false
+
+pomExtra := (
+  <name>MongoDB Jackson Mapper Play 2.0 Framework Module</name>
+  <description>Provides a lightweight plugin for managing MongoDB connections and caching JacksonDBCollections</description>
+  <url>http://github.com/vznet/play-mongo-jackson-mapper</url>
+  <organization>
+     <name>VZ Netzwerke</name>
+     <url>http://vz.net</url>
+  </organization>
+  <inceptionYear>2012</inceptionYear>
+  <licenses>
+    <license>
+      <name>Apache 2</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+      <comments>A business-friendly OSS license</comments>
+    </license>
+  </licenses>
+  <scm>
+    <url>git@github.com:vznet/play-mongo-jackson-mapper.git</url>
+    <connection>scm:git:git@github.com:vznet/play-mongo-jackson-mapper.git</connection>
+  </scm>
+  <developers>
+    <developer>
+      <name>James Roper</name>
+      <email>james@jazzy.id.au</email>
+      <url>http://jazzy.id.au</url>
+      <roles>
+        <role>Author</role>
+      </roles>
+      <organization>VZ Netzwerke</organization>
+    </developer>
+  </developers>)
