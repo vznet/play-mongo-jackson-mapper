@@ -18,14 +18,29 @@ object MongoDB {
   )
 
   /**
-   * Get a collection
+   * Get a collection.  This method takes an implicit application as a parameter, and so is the best option to use from
+   * Scala, and can also be used while testing to pass in a fake application.
    *
    * @param name The name of the collection
    * @param entityType The type of the entity
    * @param keyType The type of the key
    */
-  def getCollection[T, K](name: String, entityType: Class[T], keyType: Class[K])(implicit app: Application) =
+  def collection[T, K](name: String, entityType: Class[T], keyType: Class[K])(implicit app: Application) =
     app.plugin[MongoDBPlugin].map(_.getCollection(name, entityType, keyType)).getOrElse(error)
+
+  /**
+   * Get a collection.  This method uses the current application, and so will not work outside of the context of a
+   * running app.
+   *
+   * @param name The name of the collection
+   * @param entityType The type of the entity
+   * @param keyType The type of the key
+   */
+  def getCollection[T, K](name: String, entityType: Class[T], keyType: Class[K]) = {
+    // This makes simpler use from Java
+    import play.api.Play.current
+    current.plugin[MongoDBPlugin].map(_.getCollection(name, entityType, keyType)).getOrElse(error)
+  }
 }
 
 class MongoDBPlugin(val app: Application) extends Plugin {
@@ -87,7 +102,8 @@ class MongoDBPlugin(val app: Application) extends Plugin {
   }
 
   override def onStop() {
-    // This config exists for testing
+    // This config exists for testing, because when you close mongo, it closes all connections, and specs runs the
+    // tests in parallel.
     if (!app.configuration.getString("mongodbJacksonMapperCloseOnStop").filter(_ == "disabled").isDefined) {
       mongo.close()
       cache.clear()

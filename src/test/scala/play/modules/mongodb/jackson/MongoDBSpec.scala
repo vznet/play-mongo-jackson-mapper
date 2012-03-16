@@ -16,7 +16,7 @@ class MongoDBSpec extends Specification {
     "be configurable by just host" in new Setup {
       implicit val app = fakeApp(Map("mongodb.servers" -> "localhost"))
       running(app) {
-        val addresses = MongoDB.getCollection(collName, classOf[MockObject], classOf[String]).getDB.getMongo.getAllAddress
+        val addresses = MongoDB.collection(collName, classOf[MockObject], classOf[String]).getDB.getMongo.getAllAddress
         addresses.size mustEqual 1
         addresses.get(0).getHost mustEqual "localhost"
         addresses.get(0).getPort mustEqual 27017
@@ -26,7 +26,7 @@ class MongoDBSpec extends Specification {
     "be configurable by host and port" in new Setup {
       implicit val app = fakeApp(Map("mongodb.servers" -> "localhost:27017"))
       running(app) {
-        val addresses = MongoDB.getCollection(collName, classOf[MockObject], classOf[String]).getDB.getMongo.getAllAddress
+        val addresses = MongoDB.collection(collName, classOf[MockObject], classOf[String]).getDB.getMongo.getAllAddress
         addresses.size mustEqual 1
         addresses.get(0).getHost mustEqual "localhost"
         addresses.get(0).getPort mustEqual 27017
@@ -36,7 +36,7 @@ class MongoDBSpec extends Specification {
     "be configurable as a replica set" in new Setup {
       implicit val app = fakeApp(Map("mongodb.servers" -> "localhost:27017,localhost:27017"))
       running(app) {
-        val addresses = MongoDB.getCollection(collName, classOf[MockObject], classOf[String]).getDB.getMongo.getAllAddress
+        val addresses = MongoDB.collection(collName, classOf[MockObject], classOf[String]).getDB.getMongo.getAllAddress
         addresses.size mustEqual 2
         addresses.get(0).getHost mustEqual "localhost"
         addresses.get(0).getPort mustEqual 27017
@@ -48,7 +48,7 @@ class MongoDBSpec extends Specification {
     "be able to map scala classes" in new Setup {
       implicit val app = fakeApp(Map.empty)
       running(app) {
-        val coll = MongoDB.getCollection(collName, classOf[MockObject], classOf[String])
+        val coll = MongoDB.collection(collName, classOf[MockObject], classOf[String])
         val obj = new MockObject("someid", List("one", "two", "three"))
         coll.save(obj)
         val result = coll.findOneById("someid")
