@@ -78,6 +78,20 @@ class MongoDBPlugin(val app: Application) extends Plugin {
     val dbName = app.configuration.getString("mongodb.database").getOrElse("play")
     val db = mongo.getDB(dbName)
 
+    // Authenticate if necessary
+    val credentials = app.configuration.getString("mongodb.credentials")
+    if (credentials.isDefined) {
+      credentials.get.split(":", 2) match {
+        case Array(username: String, password: String) => {
+          if (!db.authenticate(username, password.toCharArray)) {
+            throw new IllegalArgumentException("MongoDB authentication failed for user: " + username + " on database: "
+              + dbName);
+          }
+        }
+        case _ => throw new IllegalArgumentException("mongodb.credentials must be a username and password separated by a colon")
+      }
+    }
+
     // Configure the object mapper
     var mapper = new ObjectMapper;
     mapper = mapper.withModule(MongoJacksonMapperModule.INSTANCE)

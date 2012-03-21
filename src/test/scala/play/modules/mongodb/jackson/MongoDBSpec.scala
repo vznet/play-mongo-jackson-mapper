@@ -33,6 +33,17 @@ class MongoDBSpec extends Specification {
       }
     }
 
+    /*
+    // This is commented out because it's not usual for me to have a MongoDB database requiring authentication.
+    "be configurable with authentication" in new Setup {
+      implicit val app = fakeApp(Map("mongodb.credentials" -> "user:password"))
+      running(app) {
+        val coll = MongoDB.collection(collName, classOf[MockObject], classOf[String])
+        coll.count mustEqual 0
+      }
+    }
+    */
+
     "be configurable as a replica set" in new Setup {
       implicit val app = fakeApp(Map("mongodb.servers" -> "localhost:27017,localhost:27017"))
       running(app) {
