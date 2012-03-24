@@ -50,6 +50,8 @@ Configuration
 
     # Configure the database name
     mongodb.database=databasename
+    # Configure credentials
+    mongodb.credentials="user:pass"
     # Configure the servers
     mongodb.servers=host1.example.com:27017,host2.example.com,host3.example.com:19999
 
