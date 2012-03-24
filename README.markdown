@@ -18,7 +18,7 @@ Scala quick start
     import javax.persistence.Id
     import play.api.Play.current
     import play.modules.mongodb.jackson.MongoDB
-    import scala.collections.JavaConversions._
+    import scala.collection.JavaConversions._
 
     class BlogPost(@ObjectId @Id val id: String,
                  @BeanProperty @JsonProperty("date") val date: Date,
