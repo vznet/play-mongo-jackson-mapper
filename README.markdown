@@ -3,6 +3,11 @@ MongoDB Jackson Mapper Play 2.0 Module
 
 This project provides a very simple plugin for Play 2.0 that allows easy access of mongo-jackson-mapper wrapped connections to MongoDB.  [MongoDB Jackson Mapper](http://vznet.github.com/mongo-jackson-mapper) is a lightweight POJO mapper that uses Jackson to serialise/deserialise MongoDB documents.  Because it uses Jackson, with bson4jackson to parse responses, it is fast, very flexible and performant.  It provides most of the same CRUB methods that the MongoDB Java driver provides, plus a more convenient query and updating interface.
 
+Mailing list
+------------
+
+For any questions, please use the [MongoDB Jackson Mapper users mailing list](http://groups.google.com/group/mongo-jackson-mapper).
+
 Installation
 ------------
 
