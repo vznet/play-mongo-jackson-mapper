@@ -34,7 +34,7 @@ Scala quick start
 
         def save(blogPost: BlogPost) { db.save(blogPost) }
         def findById(id: String) = Option(db.findOneById(id))
-        def findByAuthor(author: String) = db.find().is("author", author).iterableAsScalaIterable
+        def findByAuthor(author: String) = db.find().is("author", author).asScala
     }
 
 A few notes:
