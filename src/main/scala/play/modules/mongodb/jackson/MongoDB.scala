@@ -47,7 +47,7 @@ class MongoDBPlugin(val app: Application) extends Plugin {
 
   private val cache = new ConcurrentHashMap[(String, Class[_], Class[_]), JacksonDBCollection[_, _]]()
 
-  private lazy val (mongo, db, mapper) = {
+  private lazy val (mongo, db, globalMapper, configurer) = {
     // Configure MongoDB
     // DB server string is comma separated, with optional port number after a colon
     val mongoDbServers = app.configuration.getString("mongodb.servers").getOrElse("localhost")
@@ -64,14 +64,14 @@ class MongoDBPlugin(val app: Application) extends Plugin {
     val mongo = mongoDbServers.split(',') map {
       // Convert each server string to a ServerAddress, matching based on arguments
       _.split(':') match {
-        case Array(host: String) => new ServerAddress(host)
-        case Array(host: String, Port(port)) => new ServerAddress(host, port)
+        case Array(host) => new ServerAddress(host)
+        case Array(host, Port(port)) => new ServerAddress(host, port)
         case _ => throw new IllegalArgumentException("mongodb.servers must be a comma separated list of hostnames with" +
           " optional port numbers after a colon, eg 'host1.example.org:1111,host2.example.org'")
       }
     } match {
-      case Array(single: ServerAddress) => new Mongo(single)
-      case multiple: Array[ServerAddress] => new Mongo(multiple.toList)
+      case Array(single) => new Mongo(single)
+      case multiple => new Mongo(multiple.toList)
     }
 
     // Load database
@@ -92,19 +92,24 @@ class MongoDBPlugin(val app: Application) extends Plugin {
       }
     }
 
-    // Configure the object mapper
-    var mapper = new ObjectMapper;
-    mapper = mapper.withModule(MongoJacksonMapperModule.INSTANCE)
-    // This is needed by mongo jackson mapper and the module system doesn't support adding these
-    mapper.setHandlerInstantiator(new MongoJacksonHandlerInstantiator(new MongoAnnotationIntrospector(mapper.getDeserializationConfig)))
-    mapper.withModule(new DefaultScalaModule)
-    (mongo, db, mapper)
+    // Look up the object mapper configurer
+    val configurer = app.configuration.getString("mongodb.objectMapperConfigurer") map {
+      Class.forName(_).asSubclass(classOf[ObjectMapperConfigurer]).newInstance
+    }
+
+    // Configure the default object mapper
+    val defaultMapper = MongoJacksonMapperModule.configure(new ObjectMapper).withModule(new DefaultScalaModule)
+
+    val globalMapper = configurer map {_.configure(defaultMapper)} getOrElse defaultMapper
+
+    (mongo, db, globalMapper, configurer)
   }
 
   def getCollection[T, K](name: String, entityType: Class[T], keyType: Class[K]): JacksonDBCollection[T, K] = {
     if (cache.containsKey((name, entityType, keyType))) {
       cache.get((name, entityType, keyType)).asInstanceOf[JacksonDBCollection[T, K]]
     } else {
+      val mapper = configurer map {_.configure(globalMapper, name, entityType, keyType)} getOrElse globalMapper
       val coll = JacksonDBCollection.wrap(db.getCollection(name), entityType, keyType, mapper)
       cache.putIfAbsent((name, entityType, keyType), coll)
       coll

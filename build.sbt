@@ -11,7 +11,7 @@ scalaVersion := "2.9.1"
 // Dependencies
 
 libraryDependencies ++= Seq(
-    "net.vz.mongodb.jackson" % "mongo-jackson-mapper" % "1.4.0",
+    "net.vz.mongodb.jackson" % "mongo-jackson-mapper" % "1.4.1",
     "com.fasterxml" % "jackson-module-scala" % "1.9.3",
     "play" %% "play" % "2.0"
 )

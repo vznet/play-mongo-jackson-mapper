@@ -4,10 +4,11 @@ import org.specs2.mutable._
 import play.api.test._
 import play.api.test.Helpers._
 import net.vz.mongodb.jackson.Id
-import com.mongodb.Mongo
 import util.Random
 import reflect.BeanProperty
 import org.codehaus.jackson.annotate.JsonProperty
+import org.codehaus.jackson.map.{DeserializationConfig, ObjectMapper}
+import com.mongodb.{BasicDBObject, Mongo}
 
 class MongoDBSpec extends Specification {
 
@@ -68,6 +69,32 @@ class MongoDBSpec extends Specification {
         result.values must_== obj.values
       }
     }
+
+    "use a custom global configurer when configured" in new Setup {
+      implicit val app = fakeApp(Map("mongodb.objectMapperConfigurer" -> classOf[MockGlobalConfigurer].getName))
+      running(app) {
+        val coll = MongoDB.collection(collName, classOf[MockObject], classOf[String])
+        coll.getDbCollection.save(new BasicDBObject("_id", "someid").append("values", "single"))
+        // This will throw an exception if the custom object mapper isn't used
+        val result = coll.findOneById("someid")
+        result must_!= null
+        result.id must_== "someid"
+        result.values must_== List("single")
+      }
+    }
+
+    "use a custom per collection configurer when configured" in new Setup {
+      implicit val app = fakeApp(Map("mongodb.objectMapperConfigurer" -> classOf[MockPerCollectionConfigurer].getName))
+      running(app) {
+        val coll = MongoDB.collection(collName, classOf[MockObject], classOf[String])
+        coll.getDbCollection.save(new BasicDBObject("_id", "someid").append("values", "single"))
+        // This will throw an exception if the custom object mapper isn't used
+        val result = coll.findOneById("someid")
+        result must_!= null
+        result.id must_== "someid"
+        result.values must_== List("single")
+      }
+    }
   }
 
   trait Setup extends After {
@@ -75,15 +102,32 @@ class MongoDBSpec extends Specification {
       FakeApplication(additionalConfiguration = o ++ Map("ehcacheplugin" -> "disabled",
         "mongodbJacksonMapperCloseOnStop" -> "disabled"))
     }
+
     val collName = "mockcoll" + new Random().nextInt(10000)
+
     def after {
       val mongo = new Mongo()
       mongo.getDB("play").getCollection(collName).drop()
     }
   }
+
 }
 
 class MockObject(@Id val id: String,
                  @JsonProperty("values") @BeanProperty val values: List[String]) {
   @Id def getId = id;
+}
+
+class MockGlobalConfigurer extends ObjectMapperConfigurer {
+  def configure(defaultMapper: ObjectMapper) =
+    defaultMapper.configure(DeserializationConfig.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true)
+
+  def configure(globalMapper: ObjectMapper, collectionName: String, objectType: Class[_], keyType: Class[_]) = globalMapper
+}
+
+class MockPerCollectionConfigurer extends ObjectMapperConfigurer {
+  def configure(defaultMapper: ObjectMapper) = defaultMapper
+
+  def configure(globalMapper: ObjectMapper, collectionName: String, objectType: Class[_], keyType: Class[_]) =
+    globalMapper.configure(DeserializationConfig.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true)
 }

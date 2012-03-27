@@ -59,8 +59,30 @@ Configuration
     mongodb.credentials="user:pass"
     # Configure the servers
     mongodb.servers=host1.example.com:27017,host2.example.com,host3.example.com:19999
+    # Configure a custom ObjectMapper to use
+    mongodb.objectMapperConfigurer=foo.bar.MyObjectMapperConfigurer
 
 The database name defaults to play.  The servers defaults to localhost.  Specifying a port number is optional, it defaults to the default MongoDB port.  If you specify one server, MongoDB will be used as a single server, if you specify multiple, it will be used as a replica set.
+
+Configuring the object mapper
+-----------------------------
+
+If you specify an object mapper configurer, it must be a class with a noarg constructor that implements the trait ``ObjectMapperConfigurer``.  This trait has two methods, one for configuring the global object mapper that will be used for all collections, and another for configuring object mappers per collection.  An example implementation might look like this:
+
+    class MyObjectMapperConfigurer extends ObjectMapperConfigurer {
+        def configure(defaultMapper: ObjectMapper) =
+            defaultMapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+
+        def configure(globalMapper: ObjectMapper, collectionName: String, objectType: Class[_], keyType: Class[_]) = {
+            if (collectionName == "something") {
+                // Because object mapper is mutable, and doesn't provide a simple way to just copy it's configuration, if
+                // you want to configure one for a specific collection, you probably have to create a new one from scratch.
+                val mapper = configure(MongoJacksonMapperModule.configure(new ObjectMapper).withModule(new DefaultScalaModule))
+                return mapper.configure(DeserializationConfig.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true)
+            }
+            return globalMapper
+        }
+    }
 
 Features
 --------
@@ -68,4 +90,5 @@ Features
 * Manages lifecycle of MongoDB connection pool
 * Caches JacksonDBCollection instances, so looking up a JacksonDBCollection is cheap
 * Configures Jackson to use the FasterXML ``DefaultScalaModule``, so scala mapping works out of the box.
+* Allows configuring a custom object mapper
 
