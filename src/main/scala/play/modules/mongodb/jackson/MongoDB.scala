@@ -7,7 +7,7 @@ import org.codehaus.jackson.map.ObjectMapper
 import net.vz.mongodb.jackson.internal.{MongoAnnotationIntrospector, MongoJacksonHandlerInstantiator, MongoJacksonMapperModule}
 import play.api.Application
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
-import com.mongodb.{Mongo, ServerAddress}
+import com.mongodb.{Mongo, MongoURI, ServerAddress}
 
 /**
  * MongoDB Jackson Mapper module for play framework
@@ -48,49 +48,6 @@ class MongoDBPlugin(val app: Application) extends Plugin {
   private val cache = new ConcurrentHashMap[(String, Class[_], Class[_]), JacksonDBCollection[_, _]]()
 
   private lazy val (mongo, db, globalMapper, configurer) = {
-    // Configure MongoDB
-    // DB server string is comma separated, with optional port number after a colon
-    val mongoDbServers = app.configuration.getString("mongodb.servers").getOrElse("localhost")
-    // Parser for port number
-    object Port {
-      def unapply(s: String): Option[Int] = try {
-        Some(s.toInt)
-      } catch {
-        case _: java.lang.NumberFormatException => None
-      }
-    }
-    import scala.collection.JavaConversions._
-    // Split servers
-    val mongo = mongoDbServers.split(',') map {
-      // Convert each server string to a ServerAddress, matching based on arguments
-      _.split(':') match {
-        case Array(host) => new ServerAddress(host)
-        case Array(host, Port(port)) => new ServerAddress(host, port)
-        case _ => throw new IllegalArgumentException("mongodb.servers must be a comma separated list of hostnames with" +
-          " optional port numbers after a colon, eg 'host1.example.org:1111,host2.example.org'")
-      }
-    } match {
-      case Array(single) => new Mongo(single)
-      case multiple => new Mongo(multiple.toList)
-    }
-
-    // Load database
-    val dbName = app.configuration.getString("mongodb.database").getOrElse("play")
-    val db = mongo.getDB(dbName)
-
-    // Authenticate if necessary
-    val credentials = app.configuration.getString("mongodb.credentials")
-    if (credentials.isDefined) {
-      credentials.get.split(":", 2) match {
-        case Array(username: String, password: String) => {
-          if (!db.authenticate(username, password.toCharArray)) {
-            throw new IllegalArgumentException("MongoDB authentication failed for user: " + username + " on database: "
-              + dbName);
-          }
-        }
-        case _ => throw new IllegalArgumentException("mongodb.credentials must be a username and password separated by a colon")
-      }
-    }
 
     // Look up the object mapper configurer
     val configurer = app.configuration.getString("mongodb.objectMapperConfigurer") map {
@@ -102,7 +59,67 @@ class MongoDBPlugin(val app: Application) extends Plugin {
 
     val globalMapper = configurer map {_.configure(defaultMapper)} getOrElse defaultMapper
 
-    (mongo, db, globalMapper, configurer)
+    app.configuration.getString("mongodb.uri") match {
+      case Some(uri) => {
+        val mongoURI = new MongoURI(uri)
+        val mongo = new Mongo(mongoURI)
+        val db = mongo.getDB(mongoURI.getDatabase())
+        if (mongoURI.getUsername != null) {
+          if (!db.authenticate(mongoURI.getUsername, mongoURI.getPassword)) {
+            throw new IllegalArgumentException("MongoDB authentication failed for user: " + mongoURI.getUsername + " on database: "
+              + mongoURI.getDatabase);
+          }
+        }
+        (mongo, db, globalMapper, configurer)
+      }
+      case None => {
+        // Configure MongoDB
+        // DB server string is comma separated, with optional port number after a colon
+        val mongoDbServers = app.configuration.getString("mongodb.servers").getOrElse("localhost")
+        // Parser for port number
+        object Port {
+          def unapply(s: String): Option[Int] = try {
+            Some(s.toInt)
+          } catch {
+            case _: java.lang.NumberFormatException => None
+          }
+        }
+        import scala.collection.JavaConversions._
+        // Split servers
+        val mongo = mongoDbServers.split(',') map {
+          // Convert each server string to a ServerAddress, matching based on arguments
+          _.split(':') match {
+            case Array(host) => new ServerAddress(host)
+            case Array(host, Port(port)) => new ServerAddress(host, port)
+            case _ => throw new IllegalArgumentException("mongodb.servers must be a comma separated list of hostnames with" +
+              " optional port numbers after a colon, eg 'host1.example.org:1111,host2.example.org'")
+          }
+        } match {
+          case Array(single) => new Mongo(single)
+          case multiple => new Mongo(multiple.toList)
+        }
+
+        // Load database
+        val dbName = app.configuration.getString("mongodb.database").getOrElse("play")
+        val db = mongo.getDB(dbName)
+
+        // Authenticate if necessary
+        val credentials = app.configuration.getString("mongodb.credentials")
+        if (credentials.isDefined) {
+          credentials.get.split(":", 2) match {
+            case Array(username: String, password: String) => {
+              if (!db.authenticate(username, password.toCharArray)) {
+                throw new IllegalArgumentException("MongoDB authentication failed for user: " + username + " on database: "
+                  + dbName);
+              }
+            }
+            case _ => throw new IllegalArgumentException("mongodb.credentials must be a username and password separated by a colon")
+          }
+        }
+
+        (mongo, db, globalMapper, configurer)
+      }
+    }
   }
 
   def getCollection[T, K](name: String, entityType: Class[T], keyType: Class[K]): JacksonDBCollection[T, K] = {
