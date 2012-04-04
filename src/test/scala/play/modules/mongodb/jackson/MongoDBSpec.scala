@@ -15,6 +15,17 @@ class MongoDBSpec extends Specification {
   "The MongoDB plugin" should {
 
     "be configurable by just uri" in new Setup {
+      implicit val app = fakeApp(Map("mongodb.uri" -> "mongodb://localhost:27017/databasename"))
+      running(app) {
+        val addresses = MongoDB.collection(collName, classOf[MockObject], classOf[String]).getDB.getMongo.getAllAddress
+        addresses.size mustEqual 1
+        addresses.get(0).getHost mustEqual "localhost"
+        addresses.get(0).getPort mustEqual 27017
+      }
+    }
+
+    /*
+    "be configurable by uri with username and password" in new Setup {
       implicit val app = fakeApp(Map("mongodb.uri" -> "mongodb://username:password@localhost:27017/databasename"))
       running(app) {
         val addresses = MongoDB.collection(collName, classOf[MockObject], classOf[String]).getDB.getMongo.getAllAddress
@@ -23,6 +34,7 @@ class MongoDBSpec extends Specification {
         addresses.get(0).getPort mustEqual 27017
       }
     }
+    */
 
     "be configurable by just host" in new Setup {
       implicit val app = fakeApp(Map("mongodb.servers" -> "localhost"))
