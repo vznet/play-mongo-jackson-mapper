@@ -13,7 +13,7 @@ Installation
 
 Add the following to your ``build.sbt`` file:
 
-    libraryDependencies += "net.vz.mongodb.jackson" % "play-mongo-jackson-mapper" % "1.0.0-rc.3"
+    libraryDependencies += "net.vz.mongodb.jackson" %% "play-mongo-jackson-mapper" % "1.0.0-rc.3"
 
 Scala quick start
 -----------------
