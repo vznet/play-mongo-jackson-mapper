@@ -11,9 +11,15 @@ For any questions, please use the [MongoDB Jackson Mapper users mailing list](ht
 Installation
 ------------
 
-Add the following to your ``build.sbt`` file:
+Add the following dependency to your dependencies:
 
-    libraryDependencies += "net.vz.mongodb.jackson" % "play-mongo-jackson-mapper" % "1.0.0-rc.3"
+    "net.vz.mongodb.jackson" %% "play-mongo-jackson-mapper" % "1.0.0-rc.3" 
+
+for example, in ``Build.scala``:
+
+    val appDependencies = Seq(
+        "net.vz.mongodb.jackson" %% "play-mongo-jackson-mapper" % "1.0.0-rc.3" 
+    )
 
 Scala quick start
 -----------------
