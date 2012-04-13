@@ -137,7 +137,7 @@ class MongoDBSpec extends Specification {
     "be able infer the key type using MongoDocument" in new Setup {
       implicit val app = fakeApp(Map.empty)
       running(app) {
-        val coll : JacksonDBCollection[MockDocument, String] = MongoDB.collection(collName, classOf[MockDocument])
+        val coll = MongoDB.collection(collName, classOf[MockDocument])
         val doc = new MockDocument("foo")
         coll.save(doc).getSavedId must_== "foo"
       }

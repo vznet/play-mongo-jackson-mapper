@@ -60,9 +60,8 @@ object MongoDB {
    * @param name The name of the collection
    * @param entityType The type of the entity
    */
-  def collection[T <: KeyTyped[K], K](name: String, entityType: Class[T])(implicit app: Application) : JacksonDBCollection[T, K] = {
-    val keyType: Class[K] = determineKeyType(entityType)
-    collection(name, entityType, keyType)
+  def collection[T <: KeyTyped[K], K](name: String, entityType: Class[T with KeyTyped[K]])(implicit app: Application) : JacksonDBCollection[T, K] = {
+    collection(name, entityType, determineKeyType(entityType))
   }
 
   /**
@@ -78,9 +77,8 @@ object MongoDB {
    *
    * @param entityType The type of the entity
    */
-  def collection[T <: KeyTyped[K], K](entityType: Class[T])(implicit app: Application) : JacksonDBCollection[T, K] = {
-    val keyType: Class[K] = determineKeyType(entityType)
-    collection(entityType, keyType)
+  def collection[T <: KeyTyped[K], K](entityType: Class[T with KeyTyped[K]])(implicit app: Application) : JacksonDBCollection[T, K] = {
+    collection(entityType, determineKeyType(entityType))
   }
 
   /**
@@ -123,7 +121,7 @@ object MongoDB {
    * @param name The name of the collection
    * @param entityType The type of the entity
    */
-  def getCollection[T <: KeyTyped[K], K](name: String, entityType: Class[T]) : JacksonDBCollection[T, K] = {
+  def getCollection[T <: KeyTyped[K], K](name: String, entityType: Class[T with KeyTyped[K]]) : JacksonDBCollection[T, K] = {
     // This makes simpler use from Java
     import play.api.Play.current
     collection(name, entityType)
@@ -141,13 +139,13 @@ object MongoDB {
    *
    * @param entityType The type of the entity
    */
-  def getCollection[T <: KeyTyped[K], K](entityType: Class[T]) : JacksonDBCollection[T, K] = {
+  def getCollection[T <: KeyTyped[K], K](entityType: Class[T with KeyTyped[K]]) : JacksonDBCollection[T, K] = {
     // This makes simpler use from Java
     import play.api.Play.current
     collection(entityType)
   }
 
-  private def determineKeyType[T <: KeyTyped[K], K](entityType: Class[T]) : Class[K] = {
+  private def determineKeyType[K](entityType: Class[_ <: KeyTyped[K]]) : Class[K] = {
     entityType.getGenericInterfaces flatMap {
       case p: ParameterizedType =>  Array(p)
       case _ => Nil

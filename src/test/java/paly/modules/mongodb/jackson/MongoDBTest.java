@@ -29,8 +29,10 @@ public class MongoDBTest {
                 MockObject o = new MockObject();
                 o.id = "blah";
                 assertThat(coll.save(o).getSavedId(), equalTo("blah"));
+                coll.drop();
             }
         });
+
     }
 
     public class MockObject implements KeyTyped<String> {
