@@ -3,12 +3,12 @@ package play.modules.mongodb.jackson
 import org.specs2.mutable._
 import play.api.test._
 import play.api.test.Helpers._
-import net.vz.mongodb.jackson.Id
 import util.Random
 import reflect.BeanProperty
 import org.codehaus.jackson.annotate.JsonProperty
 import org.codehaus.jackson.map.{DeserializationConfig, ObjectMapper}
 import com.mongodb.{BasicDBObject, Mongo}
+import net.vz.mongodb.jackson.{JacksonDBCollection, MongoCollection, Id}
 
 class MongoDBSpec extends Specification {
 
@@ -117,6 +117,31 @@ class MongoDBSpec extends Specification {
         result.values must_== List("single")
       }
     }
+
+    "be able to infer the collection name using camel case" in new Setup {
+      implicit val app = fakeApp(Map.empty)
+      running(app) {
+        val coll = MongoDB.collection(classOf[MockObject], classOf[String])
+        coll.getName must_== "mockObject"
+      }
+    }
+
+    "be able to use the @MongoCollection annotation to find the collection name" in new Setup {
+      implicit val app = fakeApp(Map.empty)
+      running(app) {
+        val coll = MongoDB.collection(classOf[MockAnnotatedObject], classOf[String])
+        coll.getName must_== "blah"
+      }
+    }
+
+    "be able infer the key type using MongoDocument" in new Setup {
+      implicit val app = fakeApp(Map.empty)
+      running(app) {
+        val coll : JacksonDBCollection[MockDocument, String] = MongoDB.collection(collName, classOf[MockDocument])
+        val doc = new MockDocument("foo")
+        coll.save(doc).getSavedId must_== "foo"
+      }
+    }
   }
 
   trait Setup extends After {
@@ -153,3 +178,13 @@ class MockPerCollectionConfigurer extends ObjectMapperConfigurer {
   def configure(globalMapper: ObjectMapper, collectionName: String, objectType: Class[_], keyType: Class[_]) =
     globalMapper.configure(DeserializationConfig.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true)
 }
+
+@MongoCollection(name = "blah")
+class MockAnnotatedObject(@Id val id: String) {
+  @Id def getId = id;
+}
+
+class MockDocument(@Id val id: java.lang.String) extends KeyTyped[java.lang.String] {
+  @Id def getId = id;
+}
+
