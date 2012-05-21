@@ -7,10 +7,10 @@ import util.Random
 import reflect.BeanProperty
 import org.codehaus.jackson.annotate.JsonProperty
 import org.codehaus.jackson.map.{DeserializationConfig, ObjectMapper}
-import com.mongodb.{BasicDBObject, Mongo}
 import net.vz.mongodb.jackson.{JacksonDBCollection, MongoCollection, Id}
+import com.mongodb.{WriteConcern, BasicDBObject, Mongo}
 
-class MongoDBSpec extends Specification {
+case class MongoDBSpec() extends Specification {
 
   "The MongoDB plugin" should {
 
@@ -140,6 +140,22 @@ class MongoDBSpec extends Specification {
         val coll = MongoDB.collection(collName, classOf[MockDocument])
         val doc = new MockDocument("foo")
         coll.save(doc).getSavedId must_== "foo"
+      }
+    }
+
+    "use default write concern if not configured" in new Setup {
+      implicit val app = fakeApp(Map.empty)
+      running(app) {
+        val coll = MongoDB.collection(classOf[MockObject], classOf[String])
+        coll.getWriteConcern must_== coll.getDB.getMongo.getWriteConcern
+      }
+    }
+
+    "use configured write concern if configured" in new Setup {
+      implicit val app = fakeApp(Map("mongodb.defaultWriteConcern" -> "majority"))
+      running(app) {
+        val coll = MongoDB.collection(classOf[MockObject], classOf[String])
+        coll.getWriteConcern must_== WriteConcern.MAJORITY
       }
     }
   }

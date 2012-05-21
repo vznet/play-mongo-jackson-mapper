@@ -6,10 +6,10 @@ import org.codehaus.jackson.map.ObjectMapper
 import net.vz.mongodb.jackson.internal.MongoJacksonMapperModule
 import play.api.Application
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
-import com.mongodb.{Mongo, MongoURI, ServerAddress}
 import net.vz.mongodb.jackson.{MongoCollection, JacksonDBCollection}
 import java.util.Locale
 import java.lang.reflect.ParameterizedType
+import com.mongodb.{WriteConcern, Mongo, MongoURI, ServerAddress}
 
 /**
  * MongoDB Jackson Mapper module for play framework
@@ -179,11 +179,18 @@ class MongoDBPlugin(val app: Application) extends Plugin {
       _.configure(defaultMapper)
     } getOrElse defaultMapper
 
+    val defaultWriteConcern = app.configuration.getString("mongodb.defaultWriteConcern") map { value =>
+      WriteConcern.valueOf(value)
+    } filter {
+      _ != null
+    }
+
     app.configuration.getString("mongodb.uri") match {
       case Some(uri) => {
         val mongoURI = new MongoURI(uri)
         val mongo = new Mongo(mongoURI)
         val db = mongo.getDB(mongoURI.getDatabase)
+        defaultWriteConcern.foreach { concern => db.setWriteConcern(concern) }
         if (mongoURI.getUsername != null) {
           if (!db.authenticate(mongoURI.getUsername, mongoURI.getPassword)) {
             throw new IllegalArgumentException("MongoDB authentication failed for user: " + mongoURI.getUsername + " on database: "
@@ -223,6 +230,9 @@ class MongoDBPlugin(val app: Application) extends Plugin {
         val dbName = app.configuration.getString("mongodb.database").getOrElse("play")
         val db = mongo.getDB(dbName)
 
+        // Write concern
+        defaultWriteConcern.foreach { concern => db.setWriteConcern(concern) }
+
         // Authenticate if necessary
         val credentials = app.configuration.getString("mongodb.credentials")
         if (credentials.isDefined) {
@@ -249,7 +259,10 @@ class MongoDBPlugin(val app: Application) extends Plugin {
       val mapper = configurer map {
         _.configure(globalMapper, name, entityType, keyType)
       } getOrElse globalMapper
-      val coll = JacksonDBCollection.wrap(db.getCollection(name), entityType, keyType, mapper)
+
+      val mongoColl = db.getCollection(name)
+      val coll = JacksonDBCollection.wrap(mongoColl, entityType, keyType, mapper)
+
       cache.putIfAbsent((name, entityType, keyType), coll)
       coll
     }
