@@ -179,10 +179,8 @@ class MongoDBPlugin(val app: Application) extends Plugin {
       _.configure(defaultMapper)
     } getOrElse defaultMapper
 
-    val defaultWriteConcern = app.configuration.getString("mongodb.defaultWriteConcern") map { value =>
-      WriteConcern.valueOf(value)
-    } filter {
-      _ != null
+    val defaultWriteConcern = app.configuration.getString("mongodb.defaultWriteConcern") flatMap { value =>
+      Option(WriteConcern.valueOf(value))
     }
 
     app.configuration.getString("mongodb.uri") match {
@@ -235,8 +233,8 @@ class MongoDBPlugin(val app: Application) extends Plugin {
 
         // Authenticate if necessary
         val credentials = app.configuration.getString("mongodb.credentials")
-        if (credentials.isDefined) {
-          credentials.get.split(":", 2) match {
+        credentials.foreach {
+          _.split(":", 2) match {
             case Array(username: String, password: String) => {
               if (!db.authenticate(username, password.toCharArray)) {
                 throw new IllegalArgumentException("MongoDB authentication failed for user: " + username + " on database: "
