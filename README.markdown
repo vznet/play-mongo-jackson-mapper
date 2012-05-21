@@ -13,12 +13,12 @@ Installation
 
 Add the following dependency to your dependencies:
 
-    "net.vz.mongodb.jackson" %% "play-mongo-jackson-mapper" % "1.0.0-rc.3" 
+    "net.vz.mongodb.jackson" %% "play-mongo-jackson-mapper" % "1.0.0" 
 
 for example, in ``Build.scala``:
 
     val appDependencies = Seq(
-        "net.vz.mongodb.jackson" %% "play-mongo-jackson-mapper" % "1.0.0-rc.3" 
+        "net.vz.mongodb.jackson" %% "play-mongo-jackson-mapper" % "1.0.0" 
     )
 
 Scala quick start
