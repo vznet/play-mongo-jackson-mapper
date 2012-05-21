@@ -90,6 +90,11 @@ If you specify an object mapper configurer, it must be a class with a noarg cons
         }
     }
 
+Documentation
+-------------
+
+For documentation on how to use the Mongo Jackson Mapper itself, please visit the [Mongo Jackson Mapper site](http://vznet.github.com/mongo-jackson-mapper/).  In particular, the [tutorial](http://vznet.github.com/mongo-jackson-mapper/tutorial.html) might be a good place to start.
+
 Features
 --------
 
