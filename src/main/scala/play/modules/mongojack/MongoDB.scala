@@ -1,15 +1,15 @@
-package play.modules.mongodb.jackson
+package play.modules.mongojack
 
 import play.Plugin
 import java.util.concurrent.ConcurrentHashMap
-import org.codehaus.jackson.map.ObjectMapper
-import net.vz.mongodb.jackson.internal.MongoJacksonMapperModule
 import play.api.Application
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
-import net.vz.mongodb.jackson.{MongoCollection, JacksonDBCollection}
 import java.util.Locale
 import java.lang.reflect.ParameterizedType
 import com.mongodb.{WriteConcern, Mongo, MongoURI, ServerAddress}
+import org.mongojack.{MongoCollection, JacksonDBCollection}
+import com.fasterxml.jackson.databind.ObjectMapper
+import org.mongojack.internal.MongoJacksonMapperModule
 
 /**
  * MongoDB Jackson Mapper module for play framework
@@ -173,7 +173,7 @@ class MongoDBPlugin(val app: Application) extends Plugin {
     }
 
     // Configure the default object mapper
-    val defaultMapper = MongoJacksonMapperModule.configure(new ObjectMapper).withModule(new DefaultScalaModule)
+    val defaultMapper = MongoJacksonMapperModule.configure(new ObjectMapper).registerModule(new DefaultScalaModule)
 
     val globalMapper = configurer map {
       _.configure(defaultMapper)

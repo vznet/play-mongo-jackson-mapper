@@ -1,6 +1,6 @@
-package play.modules.mongodb.jackson
+package play.modules.mongojack
 
-import org.codehaus.jackson.map.ObjectMapper
+import com.fasterxml.jackson.databind.ObjectMapper
 
 /**
  * Configures an ObjectMapper.  Implementations must have a no argument constructor.

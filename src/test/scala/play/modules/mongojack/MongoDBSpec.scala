@@ -1,14 +1,14 @@
-package play.modules.mongodb.jackson
+package play.modules.mongojack
 
 import org.specs2.mutable._
 import play.api.test._
 import play.api.test.Helpers._
 import util.Random
-import reflect.BeanProperty
-import org.codehaus.jackson.annotate.JsonProperty
-import org.codehaus.jackson.map.{DeserializationConfig, ObjectMapper}
-import net.vz.mongodb.jackson.{JacksonDBCollection, MongoCollection, Id}
+import scala.beans.BeanProperty
 import com.mongodb.{WriteConcern, BasicDBObject, Mongo}
+import org.mongojack.{MongoCollection, Id}
+import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.databind.{DeserializationFeature, ObjectMapper}
 
 case class MongoDBSpec() extends Specification {
 
@@ -183,7 +183,7 @@ class MockObject(@Id val id: String,
 
 class MockGlobalConfigurer extends ObjectMapperConfigurer {
   def configure(defaultMapper: ObjectMapper) =
-    defaultMapper.configure(DeserializationConfig.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true)
+    defaultMapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true)
 
   def configure(globalMapper: ObjectMapper, collectionName: String, objectType: Class[_], keyType: Class[_]) = globalMapper
 }
@@ -192,7 +192,7 @@ class MockPerCollectionConfigurer extends ObjectMapperConfigurer {
   def configure(defaultMapper: ObjectMapper) = defaultMapper
 
   def configure(globalMapper: ObjectMapper, collectionName: String, objectType: Class[_], keyType: Class[_]) =
-    globalMapper.configure(DeserializationConfig.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true)
+    globalMapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true)
 }
 
 @MongoCollection(name = "blah")

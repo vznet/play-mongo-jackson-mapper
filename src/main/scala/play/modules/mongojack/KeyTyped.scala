@@ -1,4 +1,4 @@
-package play.modules.mongodb.jackson
+package play.modules.mongojack
 
 /**
  * An object that declares the type of its key.  This interface serves to just define the type of the key, so that it

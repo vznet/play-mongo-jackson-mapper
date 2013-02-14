@@ -1,9 +1,9 @@
-package paly.modules.mongodb.jackson;
+package play.modules.mongojack;
 
-import net.vz.mongodb.jackson.JacksonDBCollection;
 import org.junit.Test;
-import play.modules.mongodb.jackson.KeyTyped;
-import play.modules.mongodb.jackson.MongoDB;
+import org.mongojack.JacksonDBCollection;
+import play.modules.mongojack.KeyTyped;
+import play.modules.mongojack.MongoDB;
 import play.test.FakeApplication;
 
 import javax.persistence.Id;
