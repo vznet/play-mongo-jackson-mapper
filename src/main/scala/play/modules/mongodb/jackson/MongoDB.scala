@@ -5,7 +5,6 @@ import java.util.concurrent.ConcurrentHashMap
 import org.codehaus.jackson.map.ObjectMapper
 import net.vz.mongodb.jackson.internal.MongoJacksonMapperModule
 import play.api.Application
-import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import net.vz.mongodb.jackson.{MongoCollection, JacksonDBCollection}
 import java.util.Locale
 import java.lang.reflect.ParameterizedType
@@ -173,7 +172,7 @@ class MongoDBPlugin(val app: Application) extends Plugin {
     }
 
     // Configure the default object mapper
-    val defaultMapper = MongoJacksonMapperModule.configure(new ObjectMapper).withModule(new DefaultScalaModule)
+    val defaultMapper = MongoJacksonMapperModule.configure(new ObjectMapper)
 
     val globalMapper = configurer map {
       _.configure(defaultMapper)

@@ -79,6 +79,7 @@ case class MongoDBSpec() extends Specification {
       }
     }
 
+    /*
     "be able to map scala classes" in new Setup {
       implicit val app = fakeApp(Map.empty)
       running(app) {
@@ -117,6 +118,7 @@ case class MongoDBSpec() extends Specification {
         result.values must_== List("single")
       }
     }
+    */
 
     "be able to infer the collection name using camel case" in new Setup {
       implicit val app = fakeApp(Map.empty)
