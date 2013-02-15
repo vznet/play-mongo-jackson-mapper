@@ -1,7 +1,7 @@
-MongoDB Jackson Mapper Play 2.0 Module
+MongoDB Jackson Mapper Play 2.1 Module
 ======================================
 
-This project provides a very simple plugin for Play 2.0 that allows easy access of mongo-jackson-mapper wrapped connections to MongoDB.  [MongoDB Jackson Mapper](http://vznet.github.com/mongo-jackson-mapper) is a lightweight POJO mapper that uses Jackson to serialise/deserialise MongoDB documents.  Because it uses Jackson, with bson4jackson to parse responses, it is fast, very flexible and performant.  It provides most of the same CRUB methods that the MongoDB Java driver provides, plus a more convenient query and updating interface.
+This project provides a very simple plugin for Play 2.1 that allows easy access of mongo-jackson-mapper wrapped connections to MongoDB.  [MongoDB Jackson Mapper](http://vznet.github.com/mongo-jackson-mapper) is a lightweight POJO mapper that uses Jackson to serialise/deserialise MongoDB documents.  Because it uses Jackson, with bson4jackson to parse responses, it is fast, very flexible and performant.  It provides most of the same CRUB methods that the MongoDB Java driver provides, plus a more convenient query and updating interface.
 
 Mailing list
 ------------
@@ -13,12 +13,12 @@ Installation
 
 Add the following dependency to your dependencies:
 
-    "net.vz.mongodb.jackson" %% "play-mongo-jackson-mapper" % "1.0.0" 
+    "net.vz.mongodb.jackson" %% "play-mongo-jackson-mapper" % "1.1.0" 
 
 for example, in ``Build.scala``:
 
     val appDependencies = Seq(
-        "net.vz.mongodb.jackson" %% "play-mongo-jackson-mapper" % "1.0.0" 
+        "net.vz.mongodb.jackson" %% "play-mongo-jackson-mapper" % "1.1.0" 
     )
 
 Scala quick start
