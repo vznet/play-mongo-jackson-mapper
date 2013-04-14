@@ -168,7 +168,7 @@ class MongoDBPlugin(val app: Application) extends Plugin {
 
     // Look up the object mapper configurer
     val configurer = app.configuration.getString("mongodb.objectMapperConfigurer") map {
-      Class.forName(_).asSubclass(classOf[ObjectMapperConfigurer]).newInstance
+      app.classloader.findClass(_).asSubclass(classOf[ObjectMapperConfigurer]).newInstance
     }
 
     // Configure the default object mapper
